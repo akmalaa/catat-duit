@@ -67,15 +67,20 @@ export default function App() {
     } catch { /* tampilkan cache */ }
   }, [selectedMonth])
 
-  const loadRollingTxns = useCallback(async () => {
-    const now = new Date()
-    const curMonth = now.getMonth()
+  const applyRollingTxns = useCallback((curTxns, prevTxns) => {
+    setRollingTxns([...(curTxns || []), ...(prevTxns || [])])
+  }, [])
+
+  /** Data minggu ini vs kemarin: bulan berjalan + bulan sebelumnya (bisa lintas bulan) */
+  const ensureRollingData = useCallback(async (knownCurTxns = null) => {
+    const curMonth = new Date().getMonth()
     const prevMonth = curMonth === 0 ? 11 : curMonth - 1
 
-    const cachedCur = getCachedRemoteTransactions({ allowStale: true, monthIndex: curMonth }) || []
-    const cachedPrev = getCachedRemoteTransactions({ allowStale: true, monthIndex: prevMonth }) || []
-    if (cachedCur.length || cachedPrev.length) {
-      setRollingTxns([...cachedCur, ...cachedPrev])
+    let curTxns = knownCurTxns || getCachedRemoteTransactions({ allowStale: true, monthIndex: curMonth }) || []
+    let prevTxns = getCachedRemoteTransactions({ allowStale: true, monthIndex: prevMonth }) || []
+
+    if (curTxns.length || prevTxns.length) {
+      applyRollingTxns(curTxns, prevTxns)
     }
 
     if (!getScriptUrl()) {
@@ -83,18 +88,29 @@ export default function App() {
       return
     }
 
+    const needCur = !knownCurTxns && !isRemoteTransactionsCacheFresh(curMonth)
+    const needPrev = !isRemoteTransactionsCacheFresh(prevMonth)
+    if (!needCur && !needPrev) return
+
     try {
-      const [curTxns, prevTxns] = await Promise.all([
-        fetchRecentTransactions(200, curMonth),
-        fetchRecentTransactions(200, prevMonth),
+      const [fetchedCur, fetchedPrev] = await Promise.all([
+        needCur ? fetchRecentTransactions(200, curMonth) : Promise.resolve(curTxns),
+        needPrev ? fetchRecentTransactions(200, prevMonth) : Promise.resolve(prevTxns),
       ])
-      setRollingTxns([...(curTxns || []), ...(prevTxns || [])])
-    } catch {
-      setRollingTxns(prev => prev.length ? prev : getLocalTransactions())
-    }
-  }, [])
+      if (needCur && Array.isArray(fetchedCur)) {
+        curTxns = fetchedCur
+        cacheRemoteTransactions(curTxns, curMonth)
+      }
+      if (needPrev && Array.isArray(fetchedPrev)) {
+        prevTxns = fetchedPrev
+        cacheRemoteTransactions(prevTxns, prevMonth)
+      }
+      applyRollingTxns(curTxns, prevTxns)
+    } catch { /* tampilkan data cache / partial yang sudah ada */ }
+  }, [applyRollingTxns])
 
   const loadRemoteData = useCallback(async ({ force = false } = {}) => {
+    const curMonth = new Date().getMonth()
     const cachedSummary = getCachedSummary({ allowStale: true, monthIndex: selectedMonth })
     const cachedTxns = getCachedRemoteTransactions({ allowStale: true, monthIndex: selectedMonth })
 
@@ -103,6 +119,12 @@ export default function App() {
 
     if (Array.isArray(cachedTxns)) setTxns(cachedTxns)
     else setTxns([])
+
+    // Tampilkan perbandingan minggu dari cache secepat chart lain
+    const rollingCurFromCache = selectedMonth === curMonth && Array.isArray(cachedTxns)
+      ? cachedTxns
+      : null
+    await ensureRollingData(rollingCurFromCache)
 
     if (!getScriptUrl()) return
 
@@ -116,10 +138,12 @@ export default function App() {
       if (Array.isArray(transactions)) {
         setTxns(transactions)
         cacheRemoteTransactions(transactions, selectedMonth)
+        // Pakai ulang transaksi dashboard untuk bulan berjalan — hindari JSONP ganda
+        await ensureRollingData(selectedMonth === curMonth ? transactions : null)
       }
     } catch { /* silent — tampilkan cache */ }
     finally { setDataLoading(false) }
-  }, [applySummaryData, selectedMonth])
+  }, [applySummaryData, ensureRollingData, selectedMonth])
 
   const processQueue = useCallback(async () => {
     const q = getQueue()
@@ -136,7 +160,6 @@ export default function App() {
   }, [showToast])
 
   useEffect(() => { loadRemoteData() }, [loadRemoteData, refreshKey])
-  useEffect(() => { loadRollingTxns() }, [loadRollingTxns, refreshKey])
   useEffect(() => { loadBudgets(selectedMonth) }, [loadBudgets, selectedMonth, refreshKey])
   useEffect(() => {
     window.addEventListener('online', processQueue)
