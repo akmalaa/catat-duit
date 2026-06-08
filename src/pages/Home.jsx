@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { METODE_LIST, METODE_CONFIG, SUB_CATEGORIES, formatRupiah, getDayLabel, getMonthLabel } from '../lib/constants'
 import MonthPicker from '../components/MonthPicker'
+import AppLogo from '../components/AppLogo'
 import { getScriptUrl } from '../lib/api'
 import { getQueue } from '../lib/storage'
 import { getTopExpenses, getExpenseAmount, getWeeklyExpenses, getWeekOfMonth, getRollingWeekComparison } from '../lib/transactions'
@@ -165,7 +166,7 @@ export default function Home({ summary, masterTotals, txns = [], rollingTxns = [
       {/* ── Header ─────────────────────────────────────────────── */}
       <div className="home-header">
         <div>
-          <div className="greeting">Halo! 👋</div>
+          <div className="greeting">CatatDuit</div>
           <div className="day-label">{getDayLabel()}</div>
         </div>
         <div className="home-header-right">

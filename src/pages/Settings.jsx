@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import AppLogo from '../components/AppLogo'
 import { getSettings, saveSettings, testConnection, getScriptUrl } from '../lib/api'
 import { clearQueue, getQueue } from '../lib/storage'
 
@@ -34,8 +35,14 @@ export default function Settings({ onSaved }) {
 
   return (
     <div className="page settings-page">
-      <div className="page-header">
-        <h1 className="page-title">Pengaturan</h1>
+      <div className="page-header settings-page-header">
+        <div className="settings-brand">
+          <AppLogo size={48} />
+          <div>
+            <h1 className="page-title">Pengaturan</h1>
+            <div className="settings-tagline">CatatDuit · Personal Finance</div>
+          </div>
+        </div>
       </div>
 
       {/* ── Koneksi ────────────────────────────────────────── */}
