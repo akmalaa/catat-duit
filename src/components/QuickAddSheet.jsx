@@ -156,6 +156,8 @@ export default function QuickAddSheet({ onClose, onSaved, onError }) {
         onError('⏱ Timeout — Apps Script belum di-deploy ulang? Cek Pengaturan.')
       } else if (msg.includes('Gagal load script')) {
         onError('🔗 Gagal simpan ke Sheets — cek URL deployment, atau kategori tidak valid di spreadsheet.')
+      } else if (msg.includes('tidak ditemukan')) {
+        onError('📄 Sheet bulan ini belum ada di spreadsheet — buat dulu tab sheet-nya.')
       } else {
         onError('❌ ' + msg)
       }

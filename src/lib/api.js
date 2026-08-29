@@ -167,3 +167,25 @@ export async function testConnection(scriptUrl) {
   const res = await callScript({ action: 'ping' }, scriptUrl)
   return res.success === true
 }
+
+export async function fetchSpreadsheetInfo(scriptUrl) {
+  const res = await callScript({ action: 'getInfo' }, scriptUrl)
+  return res.data
+}
+
+export async function importTransactions(monthIndex, rows) {
+  const scriptUrl = getScriptUrl()
+  if (!scriptUrl) throw new Error('Script URL belum dikonfigurasi. Buka Pengaturan ⚙️')
+
+  const res = await fetch(scriptUrl, {
+    method: 'POST',
+    // text/plain menghindari CORS preflight (OPTIONS) — Apps Script gak punya handler doOptions.
+    // Apps Script tetap bisa JSON.parse(e.postData.contents) di doPost terlepas dari Content-Type ini.
+    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+    body: JSON.stringify({ action: 'importTransactions', month: monthIndex, data: rows }),
+  })
+
+  const data = await res.json()
+  if (!data.success) throw new Error(data.message || 'Import gagal')
+  return data.data
+}

@@ -29,5 +29,6 @@ Thumbs.db
 # Vite
 .vite/
 
-# Optional test/coverage
+# Optional test/coverage/plans
 coverage/
+docs/plans/

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import BottomNav    from './components/BottomNav'
 import QuickAdd     from './components/QuickAddSheet'
+import ImportStatementSheet from './components/ImportStatementSheet'
 import Toast        from './components/Toast'
 import Home         from './pages/Home'
 import History      from './pages/History'
@@ -18,6 +19,7 @@ import {
 export default function App() {
   const [page,       setPage]       = useState('home')
   const [showAdd,    setShowAdd]    = useState(false)
+  const [showImport, setShowImport] = useState(false)
   const [toast,      setToast]      = useState(null)
   const [summary,       setSummary]       = useState(null)
   const [masterTotals,  setMasterTotals]  = useState(null)
@@ -224,7 +226,10 @@ export default function App() {
           />
         </div>
         <div className="page-layer" hidden={page !== 'settings'} aria-hidden={page !== 'settings'}>
-          <Settings onSaved={() => { showToast('✅ Tersimpan!'); loadRemoteData({ force: true }) }} />
+          <Settings
+            onSaved={() => { showToast('✅ Tersimpan!'); loadRemoteData({ force: true }) }}
+            onImport={() => setShowImport(true)}
+          />
         </div>
       </div>
 
@@ -235,6 +240,17 @@ export default function App() {
           onClose={() => setShowAdd(false)}
           onSaved={onSaved}
           onError={onError}
+        />
+      )}
+
+      {showImport && (
+        <ImportStatementSheet
+          onClose={() => setShowImport(false)}
+          onError={onError}
+          onImported={(importedMonth) => {
+            showToast('✅ Import berhasil!')
+            if (importedMonth === selectedMonth) loadRemoteData({ force: true })
+          }}
         />
       )}
 

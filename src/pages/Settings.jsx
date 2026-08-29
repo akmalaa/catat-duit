@@ -1,18 +1,33 @@
 import { useState, useEffect } from 'react'
 import AppLogo from '../components/AppLogo'
-import { getSettings, saveSettings, testConnection, getScriptUrl } from '../lib/api'
+import { getSettings, saveSettings, testConnection, getScriptUrl, fetchSpreadsheetInfo } from '../lib/api'
 import { clearQueue, getQueue } from '../lib/storage'
 
-export default function Settings({ onSaved }) {
+export default function Settings({ onSaved, onImport }) {
   const [url, setUrl] = useState('')
   const [testing, setTesting] = useState(false)
   const [testResult, setTestResult] = useState(null)
   const [queueCount, setQueueCount] = useState(0)
+  const [ssInfo, setSsInfo] = useState(null)
+  const [ssInfoError, setSsInfoError] = useState(false)
 
   useEffect(() => {
-    setUrl(getScriptUrl())
+    const savedUrl = getScriptUrl()
+    setUrl(savedUrl)
     setQueueCount(getQueue().length)
+    if (savedUrl) loadSpreadsheetInfo(savedUrl)
   }, [])
+
+  const loadSpreadsheetInfo = async (scriptUrl) => {
+    setSsInfoError(false)
+    try {
+      const info = await fetchSpreadsheetInfo(scriptUrl)
+      setSsInfo(info)
+    } catch {
+      setSsInfo(null)
+      setSsInfoError(true)
+    }
+  }
 
   const handleSave = () => {
     saveSettings({ scriptUrl: url.trim() })
@@ -26,6 +41,7 @@ export default function Settings({ onSaved }) {
     try {
       await testConnection(url.trim())
       setTestResult({ ok: true, msg: '✅ Koneksi berhasil! Apps Script merespons.' })
+      loadSpreadsheetInfo(url.trim())
     } catch (e) {
       setTestResult({ ok: false, msg: '❌ ' + e.message })
     } finally { setTesting(false) }
@@ -96,6 +112,17 @@ export default function Settings({ onSaved }) {
         )}
       </div>
 
+      {/* ── Import E-Statement ─────────────────────────────── */}
+      <div className="settings-card">
+        <div className="card-title">📄 Import E-Statement</div>
+        <p className="card-body">
+          Upload e-statement Mandiri Livin (.xlsx) buat import transaksi sekaligus, tanpa ketik manual satu-satu.
+        </p>
+        <button id="btn-import-statement" className="btn-outline" onClick={onImport}>
+          📄 Import dari E-Statement
+        </button>
+      </div>
+
       {/* ── Cara Setup ──────────────────────────────────────── */}
       <div className="settings-card">
         <div className="card-title">📖 Cara Setup Apps Script</div>
@@ -118,6 +145,18 @@ export default function Settings({ onSaved }) {
       <div className="settings-card">
         <div className="card-title">ℹ️ Info Spreadsheet</div>
         <div className="info-table">
+          <div className="info-row">
+            <span>Spreadsheet aktif</span>
+            <span>
+              {ssInfo
+                ? <a href={ssInfo.url} target="_blank" rel="noopener noreferrer">{ssInfo.name} ↗</a>
+                : ssInfoError
+                  ? <em>Gagal ambil info — cek URL/koneksi</em>
+                  : url.trim()
+                    ? '⏳ Memuat...'
+                    : 'Simpan Apps Script URL dulu'}
+            </span>
+          </div>
           <div className="info-row"><span>Sheet baca</span><span>Pilih bulan di Beranda / Riwayat / Budgeting</span></div>
           <div className="info-row"><span>Budget</span><span>A63:B (sub-kategori + nominal)</span></div>
           <div className="info-row"><span>Sheet tulis</span><span>Auto-detect bulan berjalan</span></div>

@@ -72,6 +72,11 @@ var BUDGET_ROWS  = 20;
 var COL_BUDGET_CAT = 1;
 var COL_BUDGET_VAL = 2;
 
+// ── Tab List_RD (A4:L) — data reksadana dari docs/reksadana.js ──
+var RD_SHEET  = 'List_RD';
+var RD_START  = 4;
+var RD_COL_END = 12; // kolom L
+
 // Metode kolom I untuk kategori transfer — harus sama dengan TRANSFER_METODE di constants.js
 var TRANSFER_METODE = {
   'Topup Gopay':     'Gopay',
@@ -243,11 +248,39 @@ function doGet(e) {
     if (action === 'getTransactions') return handleTransactions(parseInt(e.parameter.limit) || 30, cb, e.parameter.month);
     if (action === 'getBudgets')      return handleGetBudgets(cb, e.parameter.month);
     if (action === 'saveBudgets')     return handleSaveBudgets(JSON.parse(e.parameter.data), cb, e.parameter.month);
+    if (action === 'getInfo')         return handleGetInfo(cb);
 
     return err('Aksi tidak dikenal: ' + action, cb);
   } catch(ex) {
     return err('Error: ' + ex.message, cb);
   }
+}
+
+function doPost(e) {
+  try {
+    var body = JSON.parse(e.postData.contents);
+    var action = body.action || '';
+
+    if (action === 'saveReksadana')     return handleSaveReksadana(body.data || [], null);
+    if (action === 'importTransactions') return handleImportBatch(body.data || [], body.month, null);
+
+    return err('Aksi tidak dikenal: ' + action, null);
+  } catch(ex) {
+    return err('Error: ' + ex.message, null);
+  }
+}
+
+// ================================================================
+//  Handler: Info Spreadsheet aktif (nama + URL)
+// ================================================================
+
+function handleGetInfo(cb) {
+  var ss = getSpreadsheet();
+  return ok({
+    name: ss.getName(),
+    url: ss.getUrl(),
+    id: ss.getId(),
+  }, '', cb);
 }
 
 // ================================================================
@@ -319,6 +352,51 @@ function handleAdd(data, cb) {
 
     return err('handleAdd gagal: ' + e.message, cb);
   }
+}
+
+// ================================================================
+//  Handler: Import Batch (dari e-statement) → Tabel Master F:L
+// ================================================================
+
+function handleImportBatch(rows, monthIndex, cb) {
+  if (!Array.isArray(rows)) throw new Error('Data import harus berupa array');
+  if (rows.length === 0) return ok({ count: 0 }, 'Tidak ada transaksi untuk diimport.', cb);
+
+  var sheet     = getSheetForMonth(monthIndex);
+  var startRow  = findNextEmptyRow(sheet, MASTER_START, COL_F);
+  var maxRows   = MASTER_END - startRow + 1;
+  var toWrite   = rows.slice(0, Math.max(maxRows, 0));
+
+  var matrix = [];
+  for (var i = 0; i < toWrite.length; i++) {
+    var data     = toWrite[i];
+    var kategori = normalizeKategori(data.kategori);
+    var metode   = normalizeMetode(kategori, data.metode);
+    var nominal  = Number(data.nominal) || 0;
+
+    matrix.push([
+      data.tanggal,
+      data.keterangan || kategori,
+      kategori,
+      metode,
+      data.subKategori || 'Lain-lain',
+      data.tipe === 'pemasukan' ? nominal : '',
+      data.tipe === 'pemasukan' ? '' : nominal,
+    ]);
+  }
+
+  if (matrix.length > 0) {
+    sheet.getRange(startRow, COL_F, matrix.length, 7).setValues(matrix);
+  }
+
+  Logger.log('importTransactions (%s) → %s/%s baris ditulis mulai row %s', sheet.getName(), matrix.length, rows.length, startRow);
+
+  return ok({
+    count: matrix.length,
+    requested: rows.length,
+    startRow: startRow,
+    sheetName: sheet.getName(),
+  }, matrix.length + ' transaksi berhasil diimport ke ' + sheet.getName() + '!', cb);
 }
 
 // ================================================================
@@ -499,6 +577,53 @@ function handleTransactions(limit, cb, monthIndex) {
   }
 
   return ok(txns, '', cb);
+}
+
+// ================================================================
+//  Handler: Reksadana → sheet List_RD (A4:L)
+// ================================================================
+
+function getListRDSheet() {
+  var sheet = getSpreadsheet().getSheetByName(RD_SHEET);
+  if (!sheet) throw new Error('Sheet "' + RD_SHEET + '" tidak ditemukan.');
+  return sheet;
+}
+
+function handleSaveReksadana(funds, cb) {
+  if (!Array.isArray(funds)) throw new Error('Data reksadana harus berupa array');
+
+  var sheet = getListRDSheet();
+  var lastRow = sheet.getLastRow();
+
+  if (lastRow >= RD_START) {
+    sheet.getRange(RD_START, 1, lastRow - RD_START + 1, RD_COL_END).clearContent();
+  }
+
+  var rows = [];
+  for (var i = 0; i < funds.length; i++) {
+    var f = funds[i];
+    rows.push([
+      f.fund_id ?? '',
+      f.name ?? '',
+      f.investment_manager ?? '',
+      f.fund_type ?? '',
+      f.sharia ?? '',
+      f.nab_per_unit ?? '',
+      f.aum ?? '',
+      f.daily_return ?? '',
+      f.monthly_return ?? '',
+      f.yearly_return ?? '',
+      f.last_update ?? '',
+      f.snapshot_datetime ?? '',
+    ]);
+  }
+
+  if (rows.length > 0) {
+    sheet.getRange(RD_START, 1, rows.length, RD_COL_END).setValues(rows);
+  }
+
+  Logger.log('saveReksadana → %s baris ditulis ke %s', rows.length, RD_SHEET);
+  return ok({ count: rows.length }, 'Data reksadana tersimpan ke ' + RD_SHEET + '!', cb);
 }
 
 // ================================================================
