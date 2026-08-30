@@ -84,6 +84,14 @@ var TRANSFER_METODE = {
   'Tarik Cash':      'Cash',
 };
 
+// Kategori pemasukan — tidak punya sub-kategori (kolom J dikosongkan)
+var INCOME_KATEGORI = {
+  'Pemasukkan':      1, // typo spreadsheet (double k)
+  'Pemasukan':       1,
+  'Hutang (Masuk)':  1,
+};
+function isIncomeKategori(k) { return !!INCOME_KATEGORI[k]; }
+
 // ================================================================
 //  Helpers
 // ================================================================
@@ -321,7 +329,7 @@ function handleAdd(data, cb) {
     sheet.getRange(row, COL_G).setValue(data.keterangan || data.kategori);
     sheet.getRange(row, COL_H).setValue(data.kategori);
     sheet.getRange(row, COL_I).setValue(data.metode);
-    sheet.getRange(row, COL_J).setValue(data.subKategori || 'Lain-lain');
+    sheet.getRange(row, COL_J).setValue(isIncomeKategori(data.kategori) ? '' : (data.subKategori || 'Lain-lain'));
 
     if (data.tipe === 'pemasukan') {
       sheet.getRange(row, COL_K).setValue(Number(data.nominal) || 0);
@@ -379,7 +387,7 @@ function handleImportBatch(rows, monthIndex, cb) {
       data.keterangan || kategori,
       kategori,
       metode,
-      data.subKategori || 'Lain-lain',
+      isIncomeKategori(kategori) ? '' : (data.subKategori || 'Lain-lain'),
       data.tipe === 'pemasukan' ? nominal : '',
       data.tipe === 'pemasukan' ? '' : nominal,
     ]);

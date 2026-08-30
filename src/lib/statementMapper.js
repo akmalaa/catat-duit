@@ -33,7 +33,8 @@ export function mapRowToTransaction(row) {
     keterangan: firstLine(row.keteranganRaw) || kategori,
     kategori,
     metode,
-    subKategori: 'Lain-lain',
+    // Pemasukan tidak punya sub-kategori
+    subKategori: kategori === 'Pemasukan' ? null : 'Lain-lain',
     tipe,
     nominal,
     _raw: row,

@@ -197,7 +197,8 @@ export default function ImportStatementSheet({ onClose, onImported, onError }) {
 
 function ImportRow({ row, onChange }) {
   const cfg = METODE_CONFIG[row.metode] || METODE_CONFIG.Cash
-  const isIncome = row.tipe === 'pemasukan'
+  const catCfg = CATEGORIES.find(c => c.label === row.kategori)
+  const isIncome = catCfg?.tipe === 'pemasukan'
 
   return (
     <div className={`txn-item import-row ${!row.include ? 'import-row-excluded' : ''}`}>
@@ -227,13 +228,22 @@ function ImportRow({ row, onChange }) {
           <select
             className="field-input"
             value={row.kategori}
-            onChange={e => onChange({ kategori: e.target.value, metode: getMetodeForCategory(e.target.value, row.metode) })}
+            onChange={e => {
+              const nextCat = CATEGORIES.find(c => c.label === e.target.value)
+              onChange({
+                kategori: e.target.value,
+                metode: getMetodeForCategory(e.target.value, row.metode),
+                subKategori: nextCat?.tipe === 'pemasukan' ? null : (row.subKategori || 'Lain-lain'),
+              })
+            }}
           >
             {CATEGORIES.map(c => <option key={c.label} value={c.label}>{c.label}</option>)}
           </select>
-          <select className="field-input" value={row.subKategori} onChange={e => onChange({ subKategori: e.target.value })}>
-            {SUB_CATEGORIES.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
+          {!isIncome && (
+            <select className="field-input" value={row.subKategori} onChange={e => onChange({ subKategori: e.target.value })}>
+              {SUB_CATEGORIES.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+          )}
           <select className="field-input" value={row.metode} onChange={e => onChange({ metode: e.target.value })}>
             {METODE_LIST.map(m => <option key={m} value={m}>{m}</option>)}
           </select>

@@ -117,7 +117,8 @@ export default function QuickAddSheet({ onClose, onSaved, onError }) {
       keterangan: keterangan.trim() || kategori.label,
       kategori: sheetKategori,
       metode: finalMetode,
-      subKategori: subKat,
+      // Pemasukan & Hutang (Masuk) tidak punya sub-kategori
+      subKategori: kategori.tipe === 'pemasukan' ? null : subKat,
       tipe: kategori.tipe,
       nominal: Number(amount),
     }
@@ -283,23 +284,25 @@ export default function QuickAddSheet({ onClose, onSaved, onError }) {
               </div>
             </div>
 
-            {/* Sub-Kategori */}
-            <div className="field-group">
-              <div className="field-label">Sub-Kategori</div>
-              <div className="chips-wrap">
-                {SUB_CATEGORIES.map(s => (
-                  <button
-                    key={s}
-                    id={`chip-sub-${s}`}
-                    className={`chip chip-sm ${subKat === s ? 'chip-active' : ''}`}
-                    onClick={() => setSubKat(s)}
-                    aria-pressed={subKat === s}
-                  >
-                    {s}
-                  </button>
-                ))}
+            {/* Sub-Kategori — tidak berlaku untuk Pemasukan/Hutang (Masuk) */}
+            {kategori.tipe !== 'pemasukan' && (
+              <div className="field-group">
+                <div className="field-label">Sub-Kategori</div>
+                <div className="chips-wrap">
+                  {SUB_CATEGORIES.map(s => (
+                    <button
+                      key={s}
+                      id={`chip-sub-${s}`}
+                      className={`chip chip-sm ${subKat === s ? 'chip-active' : ''}`}
+                      onClick={() => setSubKat(s)}
+                      aria-pressed={subKat === s}
+                    >
+                      {s}
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Metode Pembayaran */}
             {!isTransfer ? (
