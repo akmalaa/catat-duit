@@ -66,7 +66,7 @@ export function toggleThemeAnimated(x, y, onApply) {
       },
       {
         duration: 380,
-        easing: 'ease-out',
+        easing: 'linear',
         pseudoElement: '::view-transition-new(root)',
       },
     )
