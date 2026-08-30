@@ -29,6 +29,10 @@ Thumbs.db
 # Vite
 .vite/
 
+# claude
+.claude/
+
 # Optional test/coverage/plans
 coverage/
 docs/plans/
+docs/projectsMD/

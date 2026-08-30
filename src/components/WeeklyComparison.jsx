@@ -1,4 +1,5 @@
 import { formatRupiah } from '../lib/constants'
+import { TrendUp, TrendDown, Minus } from '@phosphor-icons/react'
 
 export default function WeeklyComparison({ data }) {
   const { recentTotal, prevTotal, changePct, direction, recentLabel, prevLabel, recentRange, prevRange } = data
@@ -17,6 +18,7 @@ export default function WeeklyComparison({ data }) {
   const pctText = changePct === null
     ? '—'
     : `${changePct > 0 ? '+' : ''}${Math.round(changePct)}%`
+  const DeltaIcon = isUp ? TrendUp : isDown ? TrendDown : Minus
 
   return (
     <div className="week-compare" role="group" aria-label="Perbandingan pengeluaran minggu ini vs minggu kemarin">
@@ -28,7 +30,7 @@ export default function WeeklyComparison({ data }) {
 
       <div className={`week-compare-delta ${isUp ? 'is-up' : isDown ? 'is-down' : 'is-flat'}`}>
         <span className="week-compare-arrow" aria-hidden="true">
-          {isUp ? '▲' : isDown ? '▼' : '—'}
+          <DeltaIcon size={12} weight="bold" />
         </span>
         <span className="week-compare-pct">{pctText}</span>
       </div>

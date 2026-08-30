@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { METODE_LIST, METODE_CONFIG, SUB_CATEGORIES, formatRupiah, getDayLabel, getMonthLabel } from '../lib/constants'
 import MonthPicker from '../components/MonthPicker'
-import AppLogo from '../components/AppLogo'
 import { getScriptUrl } from '../lib/api'
 import { getQueue } from '../lib/storage'
 import { getTopExpenses, getExpenseAmount, getWeeklyExpenses, getWeekOfMonth, getRollingWeekComparison } from '../lib/transactions'
-import TransactionItem from '../components/TransactionItem'
 import WeeklyComparison from '../components/WeeklyComparison'
+import ThemeToggle from '../components/ThemeToggle'
+import { MethodIcon, GearSix, CloudArrowUp, Receipt, ChartBar } from '../components/icons'
 
 // ── Spending by sub-kategori (dari transaksi lokal) ─────────────
 function getSpendingBySubKat(txns, metode = 'All') {
@@ -28,31 +28,22 @@ function WeeklyChart({ data, currentWeek }) {
   if (!total) {
     return (
       <div className="weekly-empty">
-        <span className="weekly-empty-emoji">📊</span>
+        <ChartBar size={26} weight="light" aria-hidden="true" />
         <span>Belum ada pengeluaran minggu ini</span>
       </div>
     )
   }
 
-  const SEG_COLORS = ['#7c6cf5', '#06b6d4', '#34d399', '#f59e0b', '#f87171']
-
   return (
     <div className="weekly-chart">
-      {/* Vertical bars */}
-      <div className="weekly-bars">
-        {weeks.map((w, i) => {
+      <div className="weekly-bars" role="img" aria-label={`Grafik pengeluaran mingguan, total ${formatRupiah(total)}`}>
+        {weeks.map((w) => {
           const isActive = currentWeek === w.week
           return (
             <div key={w.week} className={`weekly-col ${isActive ? 'is-current' : ''}`}>
               <div className="weekly-col-amt">{w.amount > 0 ? formatRupiah(w.amount) : '—'}</div>
               <div className="weekly-col-track">
-                <div
-                  className="weekly-col-fill"
-                  style={{
-                    height: `${w.barPct}%`,
-                    background: `${SEG_COLORS[i]}`,
-                  }}
-                />
+                <div className="weekly-col-fill" style={{ height: `${w.barPct}%` }} />
               </div>
               <div className="weekly-col-label">{w.label}</div>
               <div className="weekly-col-range">{w.range}</div>
@@ -68,10 +59,11 @@ function WeeklyChart({ data, currentWeek }) {
 }
 
 // ── Sub-kategori chart (CSS horizontal bars) ────────────────────
+const SUBKAT_COLORS = ['#2563eb', '#f59e0b', '#8b5cf6', '#10b981', '#f87171', '#94a3b8']
+
 function SubKatChart({ data }) {
   if (!data.length) return null
   const max = data[0][1]
-  const COLORS = ['#7c6cf5', '#06b6d4', '#34d399', '#f59e0b', '#f87171', '#a78bfa']
   return (
     <div className="subkat-chart">
       {data.map(([sub, amt], i) => (
@@ -80,7 +72,7 @@ function SubKatChart({ data }) {
           <div className="subkat-bar-wrap">
             <div
               className="subkat-bar-fill"
-              style={{ width: `${(amt / max) * 100}%`, background: COLORS[i % COLORS.length] }}
+              style={{ width: `${(amt / max) * 100}%`, background: SUBKAT_COLORS[i % SUBKAT_COLORS.length] }}
             />
           </div>
           <div className="subkat-amt">{formatRupiah(amt)}</div>
@@ -98,26 +90,56 @@ function BalanceCard({ metode, data }) {
   const net = in_ - out
   const awal = data?.saldoAwal || 0
   const akhir = awal + net
-  const total = in_ + out
-  const inPct = total > 0 ? (in_ / total) * 100 : 50
 
   return (
-    <div className="bal-card" style={{ '--card-color': cfg.color }}>
-      <div className="bal-header" >
-        <span className="bal-emoji">{cfg.emoji}</span>
+    <div className="bal-card">
+      <div className="bal-header">
+        <span className="bal-icon" style={{ background: cfg.bg, color: cfg.color }}>
+          <MethodIcon metode={metode} size={15} />
+        </span>
         <span className="bal-name">{metode}</span>
       </div>
       <div className="bal-saldo">
         {formatRupiah(akhir)}
       </div>
       <div className={`bal-net ${net < 0 ? 'is-rugi' : 'is-untung'}`}>
-        {net < 0 ? '- ' : '+ '}{formatRupiah(Math.abs(net))}
+        {net < 0 ? '− ' : '+ '}{formatRupiah(Math.abs(net))}
       </div>
 
       <div className="bal-detail">
         <span className="bal-in">↑ {formatRupiah(in_)}</span>
         <span className="bal-out">↓ {formatRupiah(out)}</span>
       </div>
+    </div>
+  )
+}
+
+// ── Baris pengeluaran teratas (khusus Beranda) ───────────────────
+function ExpenseRow({ tx, rank }) {
+  const cfg = METODE_CONFIG[tx.metode] || METODE_CONFIG.Cash
+  const amount = Number(tx.pengeluaran || tx.nominal || 0)
+
+  return (
+    <div className="exp-row">
+      <div className="exp-rank" aria-hidden="true">{rank}</div>
+      <div className="exp-icon" style={{ background: cfg.bg, color: cfg.color }}>
+        <MethodIcon metode={tx.metode} size={17} />
+      </div>
+      <div className="exp-body">
+        <div className="exp-name">{tx.keterangan || tx.kategori}</div>
+        <div className="exp-meta">
+          <span className="exp-tag">{tx.kategori}</span>
+          {tx.subKategori && tx.subKategori !== 'All' && (
+            <>
+              <span className="exp-dot">·</span>
+              <span className="exp-sub">{tx.subKategori}</span>
+            </>
+          )}
+          <span className="exp-dot">·</span>
+          <span className="exp-date">{tx.tanggal}</span>
+        </div>
+      </div>
+      <div className="exp-amount">−{formatRupiah(amount)}</div>
     </div>
   )
 }
@@ -160,6 +182,7 @@ export default function Home({ summary, masterTotals, txns = [], rollingTxns = [
   const akhirTotal = (awalTotal !== null && netTotal !== null) ? awalTotal + netTotal : null
   const isRugi = netTotal !== null && netTotal < 0
   const spendRatio = (totalIn && totalOut) ? Math.min((totalOut / totalIn) * 100, 100) : null
+
   return (
     <div className="page home-page">
 
@@ -170,7 +193,12 @@ export default function Home({ summary, masterTotals, txns = [], rollingTxns = [
           <div className="day-label">{getDayLabel()}</div>
         </div>
         <div className="home-header-right">
-          {dataLoading && <span className="loading-pill" aria-label="Memuat" />}
+          {dataLoading && (
+            <span className="loading-pill" role="status">
+              <span className="sr-only">Memuat data</span>
+            </span>
+          )}
+          <ThemeToggle />
           <MonthPicker id="home-month-picker" value={selectedMonth} onChange={onMonthChange} />
         </div>
       </div>
@@ -183,7 +211,7 @@ export default function Home({ summary, masterTotals, txns = [], rollingTxns = [
         </div>
         {netTotal !== null && (
           <div className={`hero-net ${isRugi ? 'is-rugi' : 'is-untung'}`}>
-            {isRugi ? '▾ ' : '▴ '}{formatRupiah(Math.abs(netTotal))}
+            <span aria-hidden="true">{isRugi ? '▾' : '▴'}</span> {formatRupiah(Math.abs(netTotal))}
           </div>
         )}
 
@@ -206,7 +234,8 @@ export default function Home({ summary, masterTotals, txns = [], rollingTxns = [
 
         {!getScriptUrl() && (
           <div className="hero-hint">
-            ⚙️ Atur Apps Script URL di <strong>Pengaturan</strong> untuk sync real-time
+            <GearSix size={16} weight="bold" />
+            <span>Atur Apps Script URL di <strong>Pengaturan</strong> untuk sync real-time</span>
           </div>
         )}
       </div>
@@ -214,7 +243,8 @@ export default function Home({ summary, masterTotals, txns = [], rollingTxns = [
       {/* ── Queue banner ───────────────────────────────────────── */}
       {queueCount > 0 && (
         <div className="queue-banner">
-          📥 <strong>{queueCount}</strong> transaksi offline menunggu sync
+          <CloudArrowUp size={16} weight="bold" />
+          <span><strong>{queueCount}</strong> transaksi offline menunggu sync</span>
         </div>
       )}
 
@@ -247,17 +277,16 @@ export default function Home({ summary, masterTotals, txns = [], rollingTxns = [
         </div>
         <div className="filter-bar filter-bar--scroll" role="group" aria-label="Filter metode chart">
           {['All', ...METODE_LIST].map(m => {
-            const cfg = m !== 'All' ? METODE_CONFIG[m] : null
             const active = filterMetode === m
             return (
               <button
                 key={m}
                 className={`filter-chip filter-chip--sm ${active ? 'filter-on' : ''}`}
-                style={active && cfg ? { background: cfg.color + '22', borderColor: cfg.color, color: cfg.color } : {}}
                 onClick={() => setFilterMetode(m)}
                 aria-pressed={active}
               >
-                {cfg && <>{cfg.emoji}&nbsp;</>}{m === 'All' ? 'Semua' : m}
+                {m !== 'All' && <MethodIcon metode={m} size={14} />}
+                {m === 'All' ? 'Semua' : m}
               </button>
             )
           })}
@@ -304,7 +333,7 @@ export default function Home({ summary, masterTotals, txns = [], rollingTxns = [
       <div className="txn-list">
         {topExpenses.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-emoji">💸</div>
+            <div className="empty-emoji"><Receipt size={26} weight="light" aria-hidden="true" /></div>
             <p className="empty-msg">
               {filterMetode !== 'All' || filterSub !== 'All'
                 ? 'Tidak ada pengeluaran untuk filter ini'
@@ -316,7 +345,7 @@ export default function Home({ summary, masterTotals, txns = [], rollingTxns = [
           </div>
         ) : (
           topExpenses.map((tx, i) => (
-            <TransactionItem key={`${tx.tanggal}-${tx.keterangan}-${i}`} tx={tx} rank={i + 1} />
+            <ExpenseRow key={`${tx.tanggal}-${tx.keterangan}-${i}`} tx={tx} rank={i + 1} />
           ))
         )}
       </div>
