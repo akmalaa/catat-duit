@@ -3,6 +3,7 @@ import { METODE_LIST, METODE_CONFIG, TRANSFER_CATEGORIES, formatRupiah } from '.
 import MonthPicker from '../components/MonthPicker'
 import { groupTransactionsByDay } from '../lib/transactions'
 import TransactionItem from '../components/TransactionItem'
+import { MethodIcon, MagnifyingGlass } from '../components/icons'
 
 // Tidak ada calcStats di sini.
 // Semua angka (pemasukan, pengeluaran, saldo) diambil langsung dari
@@ -41,7 +42,11 @@ export default function History({ summary, masterTotals, txns = [], dataLoading,
         <div className="hist-title-row">
           <h1 className="hist-title">Riwayat</h1>
           <div className="hist-title-right">
-            {dataLoading && <span className="loading-pill" aria-label="Memuat" />}
+            {dataLoading && (
+              <span className="loading-pill" role="status">
+                <span className="sr-only">Memuat data</span>
+              </span>
+            )}
             <MonthPicker id="hist-month-picker" value={selectedMonth} onChange={onMonthChange} />
           </div>
         </div>
@@ -83,18 +88,17 @@ export default function History({ summary, masterTotals, txns = [], dataLoading,
         {/* Filter metode */}
         <div className="filter-bar hist-filter" role="group" aria-label="Filter metode">
           {['All', ...METODE_LIST].map(m => {
-            const cfg = m !== 'All' ? METODE_CONFIG[m] : null
             const active = filter === m
             return (
               <button
                 key={m}
                 id={`hist-filter-${m}`}
-                className={`filter-chip ${active ? 'filter-on' : ''}`}
-                style={active && cfg ? { background: cfg.color + '22', borderColor: cfg.color, color: cfg.color } : {}}
+                className={`filter-chip filter-chip--sm ${active ? 'filter-on' : ''}`}
                 onClick={() => setFilter(m)}
                 aria-pressed={active}
               >
-                {cfg && <>{cfg.emoji}&nbsp;</>}{m === 'All' ? 'Semua' : m}
+                {m !== 'All' && <MethodIcon metode={m} size={14} />}
+                {m === 'All' ? 'Semua' : m}
               </button>
             )
           })}
@@ -105,7 +109,7 @@ export default function History({ summary, masterTotals, txns = [], dataLoading,
       <div className="hist-body">
         {filtered.length === 0 ? (
           <div className="empty-state">
-            <div className="empty-emoji">🔍</div>
+            <div className="empty-emoji"><MagnifyingGlass size={26} weight="light" aria-hidden="true" /></div>
             <p className="empty-msg">
               {filter === 'All' ? 'Belum ada transaksi' : `Tidak ada transaksi ${filter}`}
             </p>

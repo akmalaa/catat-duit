@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { METODE_LIST, METODE_CONFIG, SUB_CATEGORIES, formatRupiah, getDayLabel, getMonthLabel } from '../lib/constants'
+import { METODE_LIST, METODE_CONFIG, SUB_CATEGORIES, hasSubKategori, formatRupiah, getDayLabel, getMonthLabel } from '../lib/constants'
 import MonthPicker from '../components/MonthPicker'
 import { getScriptUrl } from '../lib/api'
 import { getQueue } from '../lib/storage'
@@ -14,6 +14,8 @@ function getSpendingBySubKat(txns, metode = 'All') {
   for (const tx of txns) {
     if (getExpenseAmount(tx) === 0) continue
     if (metode !== 'All' && tx.metode !== metode) continue
+    // Transfer internal tidak punya sub-kategori — jangan masuk ke "Lain-lain"
+    if (!hasSubKategori(tx.kategori)) continue
     const sub = tx.subKategori || 'Lain-lain'
     map[sub] = (map[sub] || 0) + getExpenseAmount(tx)
   }

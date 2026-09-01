@@ -92,6 +92,12 @@ var INCOME_KATEGORI = {
 };
 function isIncomeKategori(k) { return !!INCOME_KATEGORI[k]; }
 
+// Kolom J (Sub-Kategori) hanya diisi untuk pengeluaran biasa.
+// Pemasukan & transfer internal (Topup Gopay/Shopeepay, Tarik Cash) dikosongkan.
+function hasSubKategori(k) {
+  return !isIncomeKategori(k) && !TRANSFER_METODE[k];
+}
+
 // ================================================================
 //  Helpers
 // ================================================================
@@ -329,7 +335,7 @@ function handleAdd(data, cb) {
     sheet.getRange(row, COL_G).setValue(data.keterangan || data.kategori);
     sheet.getRange(row, COL_H).setValue(data.kategori);
     sheet.getRange(row, COL_I).setValue(data.metode);
-    sheet.getRange(row, COL_J).setValue(isIncomeKategori(data.kategori) ? '' : (data.subKategori || 'Lain-lain'));
+    sheet.getRange(row, COL_J).setValue(hasSubKategori(data.kategori) ? (data.subKategori || 'Lain-lain') : '');
 
     if (data.tipe === 'pemasukan') {
       sheet.getRange(row, COL_K).setValue(Number(data.nominal) || 0);
@@ -387,7 +393,7 @@ function handleImportBatch(rows, monthIndex, cb) {
       data.keterangan || kategori,
       kategori,
       metode,
-      isIncomeKategori(kategori) ? '' : (data.subKategori || 'Lain-lain'),
+      hasSubKategori(kategori) ? (data.subKategori || 'Lain-lain') : '',
       data.tipe === 'pemasukan' ? nominal : '',
       data.tipe === 'pemasukan' ? '' : nominal,
     ]);

@@ -1,4 +1,5 @@
 import { METODE_CONFIG, formatRupiah } from '../lib/constants'
+import { MethodIcon } from './icons'
 
 export default function TransactionItem({ tx, rank, forceIncome }) {
   const cfg      = METODE_CONFIG[tx.metode] || METODE_CONFIG.Cash
@@ -11,7 +12,7 @@ export default function TransactionItem({ tx, rank, forceIncome }) {
     <div className="txn-item">
       {rank != null && <div className="txn-rank">{rank}</div>}
       <div className="txn-icon" style={{ background: cfg.bg, color: cfg.color }}>
-        {cfg.emoji}
+        <MethodIcon metode={tx.metode} size={17} />
       </div>
 
       <div className="txn-body">

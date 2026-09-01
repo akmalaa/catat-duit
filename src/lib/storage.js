@@ -8,6 +8,7 @@ const KEYS = {
   remote:  'cd_remote_txns_cache',
   month:   'cd_selected_month',
   budgets: 'cd_sub_budgets',
+  importDraft: 'cd_import_draft',
 }
 
 function monthKey(base, monthIndex) {
@@ -128,4 +129,41 @@ export function getSubBudgets(monthIndex = new Date().getMonth()) {
 
 export function saveSubBudgets(budgets, monthIndex) {
   cacheSubBudgets(budgets, monthIndex)
+}
+
+// ── Draft review import e-statement ───────────────────────
+// PWA di HP RAM kecil sering di-kill Android saat pindah ke app lain
+// (mis. buka m-banking buat cek transaksi). Draft hasil parse + editan
+// manual disimpan di sini supaya tidak hilang dan bisa dilanjutkan.
+const IMPORT_DRAFT_TTL = 7 * 24 * 60 * 60 * 1000 // 7 hari
+
+/** @returns {boolean} false kalau gagal simpan (mis. quota localStorage penuh) */
+export function saveImportDraft(draft) {
+  try {
+    localStorage.setItem(KEYS.importDraft, JSON.stringify({ data: draft, at: Date.now() }))
+    return true
+  } catch {
+    return false
+  }
+}
+
+/** @returns {{rows: object[], monthIndex: number, at: number} | null} */
+export function getImportDraft() {
+  try {
+    const raw = localStorage.getItem(KEYS.importDraft)
+    if (!raw) return null
+    const { data, at } = JSON.parse(raw)
+    if (!data?.rows?.length) return null
+    if (Date.now() - at > IMPORT_DRAFT_TTL) {
+      clearImportDraft()
+      return null
+    }
+    return { ...data, at }
+  } catch {
+    return null
+  }
+}
+
+export function clearImportDraft() {
+  localStorage.removeItem(KEYS.importDraft)
 }

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import BottomNav    from './components/BottomNav'
 import QuickAdd     from './components/QuickAddSheet'
 import ImportStatementSheet from './components/ImportStatementSheet'
@@ -33,6 +33,37 @@ export default function App() {
 
   const showToast = useCallback((message, type = 'success') => {
     setToast({ message, type, id: Date.now() })
+  }, [])
+
+  // ── Tombol back Android menutup slider (bukan keluar app) ──
+  // Saat slider dibuka: pushState supaya back button ke-intercept sebagai popstate.
+  // Saat slider ditutup lewat UI: history.back() untuk "membuang" state yang tadi dipush,
+  // supaya riwayat browser tetap sinkron dan tidak menumpuk entry kosong.
+  const openSheetRef = useRef(null) // 'add' | 'import' | null
+
+  const openSheet = useCallback((name, setter) => {
+    window.history.pushState({ sheet: name }, '')
+    openSheetRef.current = name
+    setter(true)
+  }, [])
+
+  const closeSheet = useCallback((setter) => {
+    setter(false)
+    if (openSheetRef.current) {
+      openSheetRef.current = null
+      if (window.history.state?.sheet) window.history.back()
+    }
+  }, [])
+
+  useEffect(() => {
+    const onPopState = () => {
+      if (!openSheetRef.current) return
+      openSheetRef.current = null
+      setShowAdd(false)
+      setShowImport(false)
+    }
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
   }, [])
 
   const applySummaryData = useCallback((data, monthIndex) => {
@@ -156,7 +187,7 @@ export default function App() {
       catch { break }
     }
     if (synced > 0) {
-      showToast(`☁️ ${synced} transaksi offline berhasil disync!`)
+      showToast(`${synced} transaksi offline berhasil disync!`)
       setRefreshKey(k => k + 1)
     }
   }, [showToast])
@@ -169,10 +200,10 @@ export default function App() {
   }, [processQueue])
 
   const onSaved = (isQueued = false) => {
-    setShowAdd(false)
+    closeSheet(setShowAdd)
     setRefreshKey(k => k + 1)
     loadRemoteData({ force: true })
-    showToast(isQueued ? '📥 Disimpan offline — akan sync otomatis' : '✅ Transaksi berhasil dicatat!')
+    showToast(isQueued ? 'Disimpan offline — akan sync otomatis' : 'Transaksi berhasil dicatat!')
   }
 
   const onError = (msg) => showToast(msg, 'error')
@@ -205,7 +236,7 @@ export default function App() {
     budgets,
     budgetSaving,
     rollingTxns,
-    onAdd: () => setShowAdd(true),
+    onAdd: () => openSheet('add', setShowAdd),
   }
 
   return (
@@ -221,14 +252,14 @@ export default function App() {
           <Budgeting
             {...sharedPageProps}
             onBudgetsChange={handleBudgetsChange}
-            onSaved={() => showToast('✅ Budget tersimpan ke spreadsheet!')}
+            onSaved={() => showToast('Budget tersimpan ke spreadsheet!')}
             onError={onError}
           />
         </div>
         <div className="page-layer" hidden={page !== 'settings'} aria-hidden={page !== 'settings'}>
           <Settings
-            onSaved={() => { showToast('✅ Tersimpan!'); loadRemoteData({ force: true }) }}
-            onImport={() => setShowImport(true)}
+            onSaved={() => { showToast('Tersimpan!'); loadRemoteData({ force: true }) }}
+            onImport={() => openSheet('import', setShowImport)}
           />
         </div>
       </div>
@@ -237,7 +268,7 @@ export default function App() {
 
       {showAdd && (
         <QuickAdd
-          onClose={() => setShowAdd(false)}
+          onClose={() => closeSheet(setShowAdd)}
           onSaved={onSaved}
           onError={onError}
         />
@@ -245,10 +276,10 @@ export default function App() {
 
       {showImport && (
         <ImportStatementSheet
-          onClose={() => setShowImport(false)}
+          onClose={() => closeSheet(setShowImport)}
           onError={onError}
           onImported={(importedMonth) => {
-            showToast('✅ Import berhasil!')
+            showToast('Import berhasil!')
             if (importedMonth === selectedMonth) loadRemoteData({ force: true })
           }}
         />

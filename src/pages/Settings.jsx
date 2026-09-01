@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react'
 import AppLogo from '../components/AppLogo'
 import { getSettings, saveSettings, testConnection, getScriptUrl, fetchSpreadsheetInfo } from '../lib/api'
 import { clearQueue, getQueue } from '../lib/storage'
+import {
+  Link, CloudArrowUp, FileText, BookOpen, Info, Trash,
+  Plug, UploadSimple, ArrowSquareOut, CheckCircle, XCircle,
+} from '../components/icons'
 
 export default function Settings({ onSaved, onImport }) {
   const [url, setUrl] = useState('')
@@ -40,10 +44,10 @@ export default function Settings({ onSaved, onImport }) {
     setTesting(true); setTestResult(null)
     try {
       await testConnection(url.trim())
-      setTestResult({ ok: true, msg: '✅ Koneksi berhasil! Apps Script merespons.' })
+      setTestResult({ ok: true, msg: 'Koneksi berhasil! Apps Script merespons.' })
       loadSpreadsheetInfo(url.trim())
     } catch (e) {
-      setTestResult({ ok: false, msg: '❌ ' + e.message })
+      setTestResult({ ok: false, msg: e.message })
     } finally { setTesting(false) }
   }
 
@@ -63,7 +67,7 @@ export default function Settings({ onSaved, onImport }) {
 
       {/* ── Koneksi ────────────────────────────────────────── */}
       <div className="settings-card">
-        <div className="card-title">🔗 Koneksi Google Sheets</div>
+        <div className="card-title"><Link size={16} weight="bold" aria-hidden="true" /> Koneksi Google Sheets</div>
 
         <div className="field-group">
           <label htmlFor="inp-url" className="field-label">Apps Script URL</label>
@@ -83,13 +87,16 @@ export default function Settings({ onSaved, onImport }) {
 
         {testResult && (
           <div className={`test-banner ${testResult.ok ? 'test-ok' : 'test-fail'}`}>
-            {testResult.msg}
+            {testResult.ok
+              ? <CheckCircle size={16} weight="bold" aria-hidden="true" />
+              : <XCircle size={16} weight="bold" aria-hidden="true" />}
+            <span>{testResult.msg}</span>
           </div>
         )}
 
         <div className="btn-row">
           <button id="btn-test" className="btn-outline" onClick={handleTest} disabled={testing || !url.trim()}>
-            {testing ? '⏳ Testing...' : '🔌 Test Koneksi'}
+            <Plug size={15} weight="bold" aria-hidden="true" /> {testing ? 'Testing…' : 'Test Koneksi'}
           </button>
           <button id="btn-save" className="btn-primary" onClick={handleSave} disabled={!url.trim()}>
             Simpan
@@ -99,33 +106,33 @@ export default function Settings({ onSaved, onImport }) {
 
       {/* ── Offline Queue ───────────────────────────────────── */}
       <div className="settings-card">
-        <div className="card-title">📥 Offline Queue</div>
+        <div className="card-title"><CloudArrowUp size={16} weight="bold" aria-hidden="true" /> Offline Queue</div>
         <p className="card-body">
           {queueCount > 0
-            ? <><strong style={{ color: '#f59e0b' }}>{queueCount} transaksi</strong> menunggu untuk disync ke Google Sheets saat kamu online kembali.</>
-            : 'Tidak ada transaksi yang menunggu — semua sudah tersync. ✅'}
+            ? <><strong className="text-accent">{queueCount} transaksi</strong> menunggu untuk disync ke Google Sheets saat kamu online kembali.</>
+            : 'Tidak ada transaksi yang menunggu — semua sudah tersync.'}
         </p>
         {queueCount > 0 && (
           <button id="btn-clear-queue" className="btn-danger" onClick={handleClearQueue}>
-            🗑️ Hapus Queue
+            <Trash size={15} weight="bold" aria-hidden="true" /> Hapus Queue
           </button>
         )}
       </div>
 
       {/* ── Import E-Statement ─────────────────────────────── */}
       <div className="settings-card">
-        <div className="card-title">📄 Import E-Statement</div>
+        <div className="card-title"><FileText size={16} weight="bold" aria-hidden="true" /> Import E-Statement</div>
         <p className="card-body">
           Upload e-statement Mandiri Livin (.xlsx) buat import transaksi sekaligus, tanpa ketik manual satu-satu.
         </p>
         <button id="btn-import-statement" className="btn-outline" onClick={onImport}>
-          📄 Import dari E-Statement
+          <UploadSimple size={15} weight="bold" aria-hidden="true" /> Import dari E-Statement
         </button>
       </div>
 
       {/* ── Cara Setup ──────────────────────────────────────── */}
       <div className="settings-card">
-        <div className="card-title">📖 Cara Setup Apps Script</div>
+        <div className="card-title"><BookOpen size={16} weight="bold" aria-hidden="true" /> Cara Setup Apps Script</div>
         <ol className="setup-list">
           <li>Buka Google Spreadsheet kamu</li>
           <li>Klik menu <strong>Extensions → Apps Script</strong></li>
@@ -143,17 +150,21 @@ export default function Settings({ onSaved, onImport }) {
 
       {/* ── Info ────────────────────────────────────────────── */}
       <div className="settings-card">
-        <div className="card-title">ℹ️ Info Spreadsheet</div>
+        <div className="card-title"><Info size={16} weight="bold" aria-hidden="true" /> Info Spreadsheet</div>
         <div className="info-table">
           <div className="info-row">
             <span>Spreadsheet aktif</span>
             <span>
               {ssInfo
-                ? <a href={ssInfo.url} target="_blank" rel="noopener noreferrer">{ssInfo.name} ↗</a>
+                ? (
+                  <a className="info-link" href={ssInfo.url} target="_blank" rel="noopener noreferrer">
+                    {ssInfo.name} <ArrowSquareOut size={13} weight="bold" aria-hidden="true" />
+                  </a>
+                )
                 : ssInfoError
                   ? <em>Gagal ambil info — cek URL/koneksi</em>
                   : url.trim()
-                    ? '⏳ Memuat...'
+                    ? 'Memuat…'
                     : 'Simpan Apps Script URL dulu'}
             </span>
           </div>

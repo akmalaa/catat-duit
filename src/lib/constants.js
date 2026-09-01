@@ -60,6 +60,15 @@ export function getMetodeForCategory(categoryLabel, selectedMetode) {
   return TRANSFER_METODE[categoryLabel] || selectedMetode
 }
 
+// Kategori tanpa sub-kategori (kolom J dikosongkan):
+// - semua pemasukan (Pemasukan, Hutang (Masuk))
+// - transfer internal (Topup Gopay, Topup Shopeepay, Tarik Cash)
+export function hasSubKategori(categoryLabel) {
+  const cat = CATEGORIES.find(c => c.label === categoryLabel || c.sheetLabel === categoryLabel)
+  if (!cat) return true
+  return cat.tipe !== 'pemasukan' && !cat.isTransfer
+}
+
 export const formatRupiah = (num) => {
   const n = Number(num)
   if (!n && n !== 0) return 'Rp 0'

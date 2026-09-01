@@ -248,8 +248,6 @@ textarea:focus {
 }
 
 /* ── Home: Header ───────────────────────────────────────────── */
-.home-page {}
-
 .home-header {
   display: flex;
   align-items: center;
@@ -982,18 +980,18 @@ textarea:focus {
   width: 54px;
   height: 54px;
   border-radius: 17px;
-  background: linear-gradient(135deg, var(--brand), var(--brand2));
+  background: var(--brand);
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
-  box-shadow: 0 4px 22px rgba(124, 108, 245, .55);
+  box-shadow: 0 4px 22px rgba(37, 99, 235, .55);
   transition: transform .15s var(--ease-spring), box-shadow .15s;
 }
 
 .add-fab:active {
   transform: scale(.9);
-  box-shadow: 0 2px 12px rgba(124, 108, 245, .4);
+  box-shadow: 0 2px 12px rgba(37, 99, 235, .4);
 }
 
 /* ── Sheet Overlay ──────────────────────────────────────────── */
@@ -1074,6 +1072,10 @@ textarea:focus {
 }
 
 .tipe-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
   flex: 1;
   padding: 11px;
   border-radius: var(--r);
@@ -1092,7 +1094,7 @@ textarea:focus {
 }
 
 .tipe-income {
-  background: rgba(52, 211, 153, .12);
+  background: rgba(16, 185, 129, .12);
   border-color: var(--income);
   color: var(--income);
 }
@@ -1278,6 +1280,10 @@ textarea:focus {
 }
 
 .chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 36px;
   padding: 7px 12px;
   border-radius: 100px;
   font-size: 13px;
@@ -1299,9 +1305,9 @@ textarea:focus {
 }
 
 .chip-active {
-  background: rgba(124, 108, 245, .14);
+  background: rgba(37, 99, 235, .16);
   border-color: var(--brand);
-  color: var(--brand);
+  color: var(--on-tint-brand);
 }
 
 /* ── Metode Grid ────────────────────────────────────────────── */
@@ -1325,10 +1331,6 @@ textarea:focus {
 
 .metode-card:active {
   transform: scale(.95);
-}
-
-.metode-emoji {
-  font-size: 20px;
 }
 
 .metode-name {
@@ -1521,6 +1523,7 @@ textarea:focus {
 .hist-stat-val {
   font-size: 13px;
   font-weight: 800;
+  font-variant-numeric: tabular-nums;
 }
 
 .hist-stat-val.is-income {
@@ -1842,9 +1845,9 @@ textarea:focus {
 .budget-count-badge {
   font-size: 11px;
   font-weight: 700;
-  color: var(--brand);
-  background: rgba(124, 108, 245, .12);
-  border: 1px solid rgba(124, 108, 245, .25);
+  color: var(--on-tint-brand);
+  background: rgba(37, 99, 235, .16);
+  border: 1px solid var(--brand);
   padding: 4px 10px;
   border-radius: 100px;
 }
@@ -1894,7 +1897,7 @@ textarea:focus {
 }
 
 .budget-bar-wrap {
-  background: rgba(255, 255, 255, .06);
+  background: var(--bg4);
   border-radius: 100px;
   height: 8px;
   overflow: hidden;
@@ -1903,17 +1906,17 @@ textarea:focus {
 .budget-bar-fill {
   height: 100%;
   border-radius: 100px;
-  background: linear-gradient(90deg, var(--brand), var(--brand2));
+  background: var(--brand);
   transition: width .5s var(--ease-out);
   min-width: 0;
 }
 
 .budget-bar-fill.warn-budget {
-  background: linear-gradient(90deg, #f59e0b, #d97706);
+  background: var(--accent);
 }
 
 .budget-bar-fill.over-budget {
-  background: linear-gradient(90deg, var(--expense), #dc2626);
+  background: var(--expense-solid);
   width: 100% !important;
 }
 
@@ -1953,16 +1956,15 @@ textarea:focus {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   padding: 16px 0 8px;
   font-size: 12px;
   color: var(--t3);
   text-align: center;
 }
 
-.budget-empty-emoji {
-  font-size: 24px;
-  opacity: .6;
+.budget-empty svg {
+  color: var(--t4);
 }
 
 /* ── Budget form (Settings) ─────────────────────────────────── */
@@ -2082,6 +2084,7 @@ textarea:focus {
   font-weight: 800;
   color: var(--t1);
   text-align: center;
+  font-variant-numeric: tabular-nums;
 }
 
 .budgeting-stat-val.is-expense {
@@ -2100,18 +2103,22 @@ textarea:focus {
 }
 
 .budgeting-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-height: 32px;
   font-size: 12px;
   font-weight: 700;
-  color: var(--brand);
-  padding: 5px 12px;
+  color: var(--on-tint-brand);
+  padding: 6px 14px;
   border-radius: 100px;
-  background: rgba(124, 108, 245, .12);
-  border: 1px solid rgba(124, 108, 245, .25);
+  background: rgba(37, 99, 235, .16);
+  border: 1px solid var(--brand);
   transition: background .15s;
 }
 
 .budgeting-toggle:active {
-  background: rgba(124, 108, 245, .22);
+  background: rgba(37, 99, 235, .26);
 }
 
 .budgeting-form-card {
@@ -2177,10 +2184,40 @@ textarea:focus {
 }
 
 .card-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 14px;
   font-weight: 700;
   color: var(--t1);
   margin-bottom: 14px;
+}
+
+.card-title svg {
+  flex-shrink: 0;
+  color: var(--brand);
+}
+
+.text-accent {
+  color: var(--accent);
+}
+
+.text-income {
+  color: var(--income);
+}
+
+.text-expense {
+  color: var(--expense);
+}
+
+.import-result-msg {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.import-result-msg svg {
+  flex-shrink: 0;
 }
 
 .card-body {
@@ -2190,16 +2227,23 @@ textarea:focus {
 }
 
 .test-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 10px 14px;
   border-radius: var(--r-sm);
   font-size: 13px;
   margin-bottom: 12px;
 }
 
+.test-banner svg {
+  flex-shrink: 0;
+}
+
 .test-ok {
-  background: rgba(52, 211, 153, .1);
+  background: rgba(16, 185, 129, .1);
   color: var(--income);
-  border: 1px solid rgba(52, 211, 153, .25);
+  border: 1px solid rgba(16, 185, 129, .25);
 }
 
 .test-fail {
@@ -2265,6 +2309,12 @@ textarea:focus {
   text-decoration: underline;
 }
 
+.info-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
 .small-code {
   font-size: 10px;
   background: var(--bg4);
@@ -2277,7 +2327,7 @@ textarea:focus {
 .app-footer {
   text-align: center;
   font-size: 11px;
-  color: var(--t4);
+  color: var(--t3);
   margin-top: 28px;
 }
 
@@ -2287,13 +2337,14 @@ textarea:focus {
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: linear-gradient(135deg, var(--brand), var(--brand2));
+  min-height: 44px;
+  background: var(--brand);
   color: #fff;
   border-radius: var(--r);
   padding: 14px 24px;
   font-size: 15px;
   font-weight: 700;
-  box-shadow: 0 4px 18px rgba(124, 108, 245, .4);
+  box-shadow: 0 4px 18px rgba(37, 99, 235, .4);
   transition: transform .14s, box-shadow .14s, opacity .14s;
 }
 
@@ -2317,13 +2368,15 @@ textarea:focus {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   background: none;
   border: 1px solid var(--border2);
   color: var(--t2);
   border-radius: var(--r);
-  padding: 12px 20px;
+  padding: 12px 14px;
   font-size: 14px;
   font-weight: 600;
+  white-space: nowrap;
   transition: background .14s, color .14s;
 }
 
@@ -2344,6 +2397,7 @@ textarea:focus {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 4px;
   background: none;
   color: var(--t2);
   padding: 8px 12px;
@@ -2361,6 +2415,7 @@ textarea:focus {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 6px;
   background: none;
   border: 1px solid rgba(248, 113, 113, .3);
   color: var(--expense);
@@ -2409,10 +2464,13 @@ textarea:focus {
   bottom: calc(var(--nav-h) + 14px);
   left: 50%;
   transform: translateX(-50%) translateY(16px);
+  display: flex;
+  align-items: center;
+  gap: 8px;
   background: var(--bg4);
   color: var(--t1);
-  padding: 12px 20px;
-  border-radius: 100px;
+  padding: 12px 18px;
+  border-radius: var(--r-lg);
   font-size: 14px;
   font-weight: 500;
   box-shadow: 0 8px 32px rgba(0, 0, 0, .5);
@@ -2420,10 +2478,14 @@ textarea:focus {
   opacity: 0;
   transition: opacity .25s, transform .3s var(--ease-spring);
   border: 1px solid var(--border2);
-  white-space: nowrap;
   max-width: calc(100vw - 32px);
-  text-align: center;
+  width: max-content;
+  text-align: left;
   pointer-events: none;
+}
+
+.toast svg {
+  flex-shrink: 0;
 }
 
 .toast-visible {
@@ -2432,12 +2494,14 @@ textarea:focus {
 }
 
 .toast-success {
-  background: rgba(16, 120, 90, .95);
-  border-color: rgba(52, 211, 153, .35);
+  background: rgba(6, 95, 70, .95);
+  color: #fff;
+  border-color: rgba(16, 185, 129, .4);
 }
 
 .toast-error {
-  background: rgba(140, 30, 30, .95);
+  background: rgba(127, 29, 29, .95);
+  color: #fff;
   border-color: rgba(248, 113, 113, .4);
 }
 
@@ -2471,7 +2535,7 @@ textarea:focus {
 .import-loading .btn-spinner {
   width: 28px;
   height: 28px;
-  border-color: rgba(255, 255, 255, .15);
+  border-color: var(--border2);
   border-top-color: var(--brand);
 }
 
@@ -2530,8 +2594,49 @@ textarea:focus {
 }
 
 .import-dup-badge {
-  color: #f59e0b;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--accent);
   background: rgba(245, 158, 11, 0.12);
+}
+
+/* Draft review yang dipulihkan setelah PWA di-kill Android */
+.import-draft-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border2);
+  border-radius: var(--r-sm);
+  background: var(--bg4);
+}
+
+.import-draft-notice-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  color: var(--t2);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.import-draft-discard {
+  padding: 0;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.import-autosave-hint {
+  margin: 10px 0 0;
+  font-size: 11px;
+  color: var(--t3);
+  text-align: center;
 }
 
 /* ── Reduce motion ──────────────────────────────────────────── */

@@ -3,6 +3,7 @@ import { SUB_CATEGORIES, formatRupiah, getMonthLabel } from '../lib/constants'
 import MonthPicker from '../components/MonthPicker'
 import BudgetProgressList from '../components/BudgetProgressList'
 import { getAllSubSpending, getBudgetProgressItems } from '../lib/transactions'
+import { PencilSimple, X } from '../components/icons'
 
 function parseBudgetInput(raw) {
   const n = Number(String(raw).replace(/\D/g, ''))
@@ -86,7 +87,11 @@ export default function Budgeting({
           <div className="budgeting-sub">{monthLabel}</div>
         </div>
         <div className="budgeting-header-right">
-          {dataLoading && <span className="loading-pill" aria-label="Memuat" />}
+          {dataLoading && (
+            <span className="loading-pill" role="status">
+              <span className="sr-only">Memuat data</span>
+            </span>
+          )}
           <MonthPicker id="budget-month-picker" value={selectedMonth} onChange={onMonthChange} />
         </div>
       </div>
@@ -133,7 +138,9 @@ export default function Budgeting({
           onClick={() => setShowForm(v => !v)}
           aria-expanded={showForm}
         >
-          {showForm ? 'Tutup' : 'Edit'}
+          {showForm
+            ? <><X size={14} weight="bold" aria-hidden="true" /> Tutup</>
+            : <><PencilSimple size={14} weight="bold" aria-hidden="true" /> Edit</>}
         </button>
       </div>
 
@@ -168,7 +175,7 @@ export default function Budgeting({
             onClick={handleSaveBudgets}
             disabled={saving || budgetSaving}
           >
-            {saving || budgetSaving ? '⏳ Menyimpan...' : 'Simpan Budget'}
+            {saving || budgetSaving ? 'Menyimpan…' : 'Simpan Budget'}
           </button>
         </div>
       )}

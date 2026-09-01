@@ -2,11 +2,12 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import {
   CATEGORIES, SUB_CATEGORIES, METODE_LIST, METODE_CONFIG,
   TRANSFER_CATEGORIES, TRANSFER_METODE, getMetodeForCategory,
-  toSheetCategory, formatRupiah, formatDate,
+  hasSubKategori, toSheetCategory, formatRupiah, formatDate,
 } from '../lib/constants'
 import { submitTransaction, getScriptUrl } from '../lib/api'
 import { enqueue, saveLocalTransaction } from '../lib/storage'
 import NumPad from './NumPad'
+import { MethodIcon, CategoryIcon, TrendUp, TrendDown, CheckCircle, CaretLeft, CaretRight } from './icons'
 
 const getLastMetode = () => localStorage.getItem('cd_last_metode') || 'Cash'
 const setLastMetode = (m) => localStorage.setItem('cd_last_metode', m)
@@ -64,7 +65,7 @@ export default function QuickAddSheet({ onClose, onSaved, onError }) {
   const goDetails = useCallback(() => {
     const current = amountRef.current
     if (!current || Number(current) === 0) {
-      onError('Masukkan nominal dulu 👆')
+      onError('Masukkan nominal dulu')
       return
     }
     setStep('details')
@@ -117,8 +118,8 @@ export default function QuickAddSheet({ onClose, onSaved, onError }) {
       keterangan: keterangan.trim() || kategori.label,
       kategori: sheetKategori,
       metode: finalMetode,
-      // Pemasukan & Hutang (Masuk) tidak punya sub-kategori
-      subKategori: kategori.tipe === 'pemasukan' ? null : subKat,
+      // Pemasukan, Hutang (Masuk), & transfer internal tidak punya sub-kategori
+      subKategori: hasSubKategori(kategori.label) ? subKat : null,
       tipe: kategori.tipe,
       nominal: Number(amount),
     }
@@ -154,13 +155,13 @@ export default function QuickAddSheet({ onClose, onSaved, onError }) {
       const msg = e.message || 'Error tidak diketahui'
       // Timeout / script load fail = Apps Script belum di-deploy ulang
       if (msg.includes('Timeout')) {
-        onError('⏱ Timeout — Apps Script belum di-deploy ulang? Cek Pengaturan.')
+        onError('Timeout — Apps Script belum di-deploy ulang? Cek Pengaturan.')
       } else if (msg.includes('Gagal load script')) {
-        onError('🔗 Gagal simpan ke Sheets — cek URL deployment, atau kategori tidak valid di spreadsheet.')
+        onError('Gagal simpan ke Sheets — cek URL deployment, atau kategori tidak valid di spreadsheet.')
       } else if (msg.includes('tidak ditemukan')) {
-        onError('📄 Sheet bulan ini belum ada di spreadsheet — buat dulu tab sheet-nya.')
+        onError('Sheet bulan ini belum ada di spreadsheet — buat dulu tab sheet-nya.')
       } else {
-        onError('❌ ' + msg)
+        onError(msg)
       }
     }
 
@@ -207,7 +208,7 @@ export default function QuickAddSheet({ onClose, onSaved, onError }) {
             onClick={() => setKategori(CATEGORIES[0])}
             aria-pressed={!isIncome}
           >
-            💸 Keluar
+            <TrendDown size={16} weight="bold" aria-hidden="true" /> Keluar
           </button>
           <button
             id="btn-masuk"
@@ -215,7 +216,7 @@ export default function QuickAddSheet({ onClose, onSaved, onError }) {
             onClick={() => setKategori(CATEGORIES[1])}
             aria-pressed={isIncome}
           >
-            💰 Masuk
+            <TrendUp size={16} weight="bold" aria-hidden="true" /> Masuk
           </button>
         </div>
 
@@ -237,7 +238,7 @@ export default function QuickAddSheet({ onClose, onSaved, onError }) {
               onClick={goDetails}
               disabled={!amount || amount === '0'}
             >
-              Lanjut →
+              Lanjut <CaretRight size={14} weight="bold" aria-hidden="true" />
             </button>
           </>
         )}
@@ -278,14 +279,14 @@ export default function QuickAddSheet({ onClose, onSaved, onError }) {
                     onClick={() => setKategori(cat)}
                     aria-pressed={kategori.label === cat.label}
                   >
-                    {cat.emoji} {cat.label}
+                    <CategoryIcon kategori={cat.label} size={14} color={kategori.label === cat.label ? cat.color : undefined} /> {cat.label}
                   </button>
                 ))}
               </div>
             </div>
 
-            {/* Sub-Kategori — tidak berlaku untuk Pemasukan/Hutang (Masuk) */}
-            {kategori.tipe !== 'pemasukan' && (
+            {/* Sub-Kategori — tidak berlaku untuk Pemasukan/Hutang (Masuk) & transfer internal */}
+            {hasSubKategori(kategori.label) && (
               <div className="field-group">
                 <div className="field-label">Sub-Kategori</div>
                 <div className="chips-wrap">
@@ -323,7 +324,7 @@ export default function QuickAddSheet({ onClose, onSaved, onError }) {
                         onClick={() => setMetode(m)}
                         aria-pressed={active}
                       >
-                        <span className="metode-emoji">{c.emoji}</span>
+                        <MethodIcon metode={m} size={20} color={active ? '#fff' : c.color} />
                         <span className="metode-name" style={active ? { color: '#fff' } : { color: c.color }}>
                           {m}
                         </span>
@@ -345,7 +346,7 @@ export default function QuickAddSheet({ onClose, onSaved, onError }) {
                           className="metode-card metode-on transfer-metode-card"
                           style={{ background: c.gradient, borderColor: 'transparent' }}
                         >
-                          <span className="metode-emoji">{c.emoji}</span>
+                          <MethodIcon metode={m} size={20} color="#fff" />
                           <span className="metode-name" style={{ color: '#fff' }}>{m}</span>
                         </div>
                         <p className="transfer-info">
@@ -386,11 +387,11 @@ export default function QuickAddSheet({ onClose, onSaved, onError }) {
             >
               {loading
                 ? <><span className="btn-spinner" aria-hidden="true" /> Menyimpan...</>
-                : '✅ Simpan Transaksi'}
+                : <><CheckCircle size={18} weight="bold" aria-hidden="true" /> Simpan Transaksi</>}
             </button>
 
             <button className="btn-ghost btn-back-amount" onClick={() => setStep('amount')}>
-              ← Ubah nominal ({formatRupiah(Number(amount))})
+              <CaretLeft size={13} weight="bold" aria-hidden="true" /> Ubah nominal ({formatRupiah(Number(amount))})
             </button>
 
             <div style={{ height: 28 }} aria-hidden="true" />

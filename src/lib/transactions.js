@@ -1,3 +1,5 @@
+import { hasSubKategori } from './constants'
+
 const DAY_NAMES = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu']
 const MONTH_SHORT = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Ags', 'Sep', 'Okt', 'Nov', 'Des']
 
@@ -115,6 +117,8 @@ export function getAllSubSpending(txns, monthIndex, year = new Date().getFullYea
   const map = {}
   for (const tx of txns) {
     if (!isExpense(tx)) continue
+    // Transfer internal tidak punya sub-kategori — jangan masuk ke "Lain-lain"
+    if (!hasSubKategori(tx.kategori)) continue
     const d = parseTanggal(tx.tanggal)
     if (!d || d.getMonth() !== monthIndex || d.getFullYear() !== year) continue
     const sub = tx.subKategori || 'Lain-lain'

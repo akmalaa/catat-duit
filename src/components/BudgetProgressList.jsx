@@ -1,10 +1,11 @@
 import { formatRupiah } from '../lib/constants'
+import { Target } from './icons'
 
 export default function BudgetProgressList({ items, emptyHint = 'Atur budget di bawah' }) {
   if (!items.length) {
     return (
       <div className="budget-empty">
-        <span className="budget-empty-emoji">🎯</span>
+        <Target size={26} weight="light" aria-hidden="true" />
         <span>{emptyHint}</span>
       </div>
     )

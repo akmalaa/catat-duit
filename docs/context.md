@@ -16,7 +16,7 @@ Struktur utama pada setiap bulannya ada di **Tabel Master** yang berada di renta
 - **G**: Keterangan
 - **H**: Kategori (Contoh: Pemasukkan, Pengeluaran, Hutang (Masuk), Tarik Cash, Topup Gopay, Topup Shopeepay)
 - **I**: Metode Pembayaran (Mandiri, Cash, Gopay, Shopeepay)
-- **J**: Sub-Kategori (Contoh: Kebutuhan, Jajan, Bensin, Impulsive, dll)
+- **J**: Sub-Kategori (Contoh: Kebutuhan, Jajan, Bensin, Impulsive, dll) — dikosongkan untuk kategori pemasukan (`Pemasukkan`, `Hutang (Masuk)`) dan transfer internal (`Topup Gopay`, `Topup Shopeepay`, `Tarik Cash`)
 - **K**: Pemasukan (Nominal uang masuk)
 - **L**: Pengeluaran (Nominal uang keluar)
 
