@@ -130,6 +130,28 @@ function getActiveSheet() {
   return getSheetForMonth(new Date().getMonth());
 }
 
+// Bulan (0-11) dari tanggal transaksi. Terima 'YYYY-MM-DD' (watchdog) dan
+// 'dd/MM/yyyy' (PWA). Return null kalau format tidak dikenal.
+function monthIndexFromTanggal(tanggal) {
+  var s = String(tanggal || '').trim();
+  var m = s.match(/^(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if (m) return parseInt(m[2], 10) - 1;
+  m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (m) return parseInt(m[2], 10) - 1;
+  return null;
+}
+
+// Tab tujuan ditentukan dari tanggal transaksi, bukan tanggal hari ini,
+// supaya transaksi bulan lalu yang baru disetujui masuk ke tab bulannya.
+function getSheetForTanggal(tanggal) {
+  var idx = monthIndexFromTanggal(tanggal);
+  if (idx === null || idx < 0 || idx > 11) {
+    Logger.log('Tanggal "%s" tidak dikenali, pakai tab bulan ini', tanggal);
+    return getActiveSheet();
+  }
+  return getSheetForMonth(idx);
+}
+
 function getSheetForMonth(monthIndex) {
   var ss  = getSpreadsheet();
   var idx = (monthIndex !== undefined && monthIndex !== null && monthIndex !== '')
@@ -322,9 +344,9 @@ function handleAdd(data, cb) {
     if (data.metode !== metodeAsli) {
       Logger.log('Metode disesuaikan: %s → %s (kategori %s)', metodeAsli, data.metode, data.kategori);
     }
-    var sheet = getActiveSheet();
+    var sheet = getSheetForTanggal(data.tanggal);
 
-    Logger.log('Sheet aktif: %s', sheet.getName());
+    Logger.log('Sheet tujuan: %s (tanggal %s)', sheet.getName(), data.tanggal);
 
     // ── 1. Tulis ke Tabel Master ─────────────────────────────
     var row = findNextEmptyRow(sheet, MASTER_START, COL_F);
